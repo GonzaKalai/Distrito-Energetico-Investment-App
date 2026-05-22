@@ -15,30 +15,18 @@ export async function exportPDF({ sector, language, logo }: Args) {
     await twoFrames();
   }
 
-  // Suggest filename via document title
   const prevTitle = document.title;
   document.title = `DistritoEnergetico_${sector}_${language}`;
 
-  // Bring print-root on screen
-  const prevStyle = printRoot.getAttribute("style") ?? "";
-  printRoot.style.cssText = "position:fixed;left:0;top:0;width:100%;z-index:99999;background:#fff;overflow:visible;";
-
-  // Inject print CSS — hide everything except print-root
   const style = document.createElement("style");
   style.id = "pdf-print-style";
   style.textContent = `
     @media print {
-      @page { margin: 1.5cm; }
-      body > *:not(#print-root) { display: none !important; }
-      #print-root {
-        position: static !important;
-        width: 100% !important;
-        display: block !important;
-      }
-      [data-print-section] {
-        page-break-after: always;
-        break-after: page;
-      }
+      @page { margin: 1cm; size: A4; }
+      body * { visibility: hidden !important; }
+      #print-root { visibility: visible !important; position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; background: white !important; }
+      #print-root * { visibility: visible !important; }
+      [data-print-section] { page-break-after: always; break-after: page; padding: 1.5cm; }
     }
   `;
   document.head.appendChild(style);
@@ -46,11 +34,9 @@ export async function exportPDF({ sector, language, logo }: Args) {
 
   window.print();
 
-  // Cleanup after print dialog closes
   setTimeout(() => {
     document.title = prevTitle;
-    printRoot.setAttribute("style", prevStyle);
     document.getElementById("pdf-print-style")?.remove();
     if (prevEditing) useApp.setState({ isEditingMode: true });
-  }, 2000);
+  }, 3000);
 }
