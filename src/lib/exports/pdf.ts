@@ -3,6 +3,7 @@ import type { Sector, Language } from "../types";
 interface Args { sector: Sector; language: Language; logo: string | null }
 
 const twoFrames = () => new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
+const wait = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
 
 export async function exportPDF({ sector, language, logo }: Args) {
   const printRoot = document.getElementById("print-root");
@@ -14,29 +15,49 @@ export async function exportPDF({ sector, language, logo }: Args) {
     useApp.setState({ isEditingMode: false });
     await twoFrames();
   }
+  await wait(300);
 
-  const prevTitle = document.title;
-  document.title = `DistritoEnergetico_${sector}_${language}`;
+  // Collect all CSS from the page
+  const styles = Array.from(document.styleSheets).map(sheet => {
+    try { return Array.from(sheet.cssRules).map(r => r.cssText).join("\n"); }
+    catch { return ""; }
+  }).join("\n");
 
-  const style = document.createElement("style");
-  style.id = "pdf-print-style";
-  style.textContent = `
-    @media print {
-      @page { margin: 1cm; size: A4; }
-      body * { visibility: hidden !important; }
-      #print-root { visibility: visible !important; position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; background: white !important; }
-      #print-root * { visibility: visible !important; }
-      [data-print-section] { page-break-after: always; break-after: page; padding: 1.5cm; }
-    }
-  `;
-  document.head.appendChild(style);
-  await twoFrames();
+  const content = printRoot.innerHTML;
 
-  window.print();
-
-  setTimeout(() => {
-    document.title = prevTitle;
-    document.getElementById("pdf-print-style")?.remove();
+  const printWindow = window.open("", "_blank", "width=1000,height=800");
+  if (!printWindow) {
+    alert("Please allow popups for this site, then try again.");
     if (prevEditing) useApp.setState({ isEditingMode: true });
-  }, 3000);
+    return;
+  }
+
+  printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DistritoEnergetico_${sector}_${language}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    ${styles}
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { margin: 0; padding: 0; background: white; font-family: 'Manrope', sans-serif; }
+    [data-print-section] { page-break-after: always; break-after: page; padding: 48px; }
+  </style>
+</head>
+<body>${content}</body>
+</html>`);
+
+  printWindow.document.close();
+
+  // Wait for fonts and styles to load, then print
+  await wait(2000);
+  printWindow.print();
+
+  // Cleanup after print dialog
+  setTimeout(() => {
+    printWindow.close();
+    if (prevEditing) useApp.setState({ isEditingMode: true });
+  }, 1000);
 }
