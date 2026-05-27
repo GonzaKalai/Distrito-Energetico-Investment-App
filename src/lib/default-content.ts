@@ -63,13 +63,6 @@ const buildSectorLang = (lang: Language, sector: Sector): SectorContent => {
       },
     },
 
-    // Sector-specific financial reference numbers
-    const entryTicket = sector === "Comercial / Retail" ? "USD 300K" : sector === "Hotel" ? "USD 800K" : sector === "Truck Center" ? "USD 400K" : "USD 500K";
-    const irrRental = sector === "Comercial / Retail" ? "14.0%" : sector === "Hotel" ? "16.0%" : sector === "Truck Center" ? "18.0%" : "15.0%";
-    const irrSale = sector === "Comercial / Retail" ? "18.0%" : sector === "Hotel" ? "22.0%" : sector === "Truck Center" ? "24.0%" : "18.5%";
-    const roiRental = sector === "Comercial / Retail" ? "2.1x" : sector === "Hotel" ? "2.5x" : sector === "Truck Center" ? "2.8x" : "2.4x";
-    const roiSale = sector === "Comercial / Retail" ? "2.6x" : sector === "Hotel" ? "3.2x" : sector === "Truck Center" ? "3.5x" : "2.9x";
-
     tab2: {
       title: isES ? "Visión General" : "Overview",
       isVisible: true,
@@ -138,8 +131,8 @@ const buildSectorLang = (lang: Language, sector: Sector): SectorContent => {
       dashboard: {
         title: isES ? "Estrategia de Salida de Inversión" : "Investment Exit Strategy",
         isVisible: true,
-        entryTicket: entryTicket,
-        irrRental: irrRental,
+        entryTicket: sector === "Comercial / Retail" ? "USD 300K" : sector === "Hotel" ? "USD 800K" : sector === "Truck Center" ? "USD 400K" : "USD 500K",
+        irrRental: sector === "Comercial / Retail" ? "14.0%" : sector === "Hotel" ? "16.0%" : sector === "Truck Center" ? "18.0%" : "15.0%",
         roiRental: "32%",
         irrSale: "20.3%",
         roiSale: "51%",
