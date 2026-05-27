@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ContentTree, Sector, Language, CustomBlock, InvestorProfile, Theme } from "@/lib/types";
+import type { ContentTree, Sector, Language, CustomBlock, InvestorProfile, Theme, SentEntry } from "@/lib/types";
 import { createDefaultContent } from "@/lib/default-content";
 
 let _counter = 0;
@@ -27,7 +27,6 @@ function setDeep(obj: any, keys: string[], value: unknown) {
   cur[keys[keys.length - 1]] = value;
 }
 
-// Saves current working state back into the active profile slot
 function saveWorkingCopy(s: AppState): InvestorProfile[] {
   return s.profiles.map(p =>
     p.id === s.activeProfileId
@@ -45,6 +44,7 @@ interface AppState {
   isEditingMode: boolean;
   logo: string | null;
   theme: Theme;
+  sentLog: SentEntry[];
 
   setSector: (s: Sector) => void;
   setLanguage: (l: Language) => void;
@@ -64,6 +64,9 @@ interface AppState {
   deleteProfile: (id: string) => void;
   duplicateProfile: (id: string) => void;
   updateProfileMeta: (name: string, company: string) => void;
+
+  addSentEntry: (entry: Omit<SentEntry, "id">) => void;
+  deleteSentEntry: (id: string) => void;
 }
 
 const initial = newProfile("General", "");
@@ -79,6 +82,7 @@ export const useApp = create<AppState>()(
       isEditingMode: false,
       logo: initial.logo,
       theme: initial.theme,
+      sentLog: [],
 
       setSector: (sector) => set({ sector }),
       setLanguage: (language) => set({ language }),
@@ -130,85 +134,48 @@ export const useApp = create<AppState>()(
       replaceContent: (content) => set({ content }),
       resetContent: () => set({ content: createDefaultContent() }),
 
-      // --- Profile management ---
-
       createProfile: (name, company) =>
         set((s) => {
           const p = newProfile(name, company);
           const profiles = [...saveWorkingCopy(s), p];
-          return {
-            profiles,
-            activeProfileId: p.id,
-            content: p.content,
-            sector: p.sector,
-            language: p.language,
-            logo: p.logo,
-            theme: p.theme,
-          };
+          return { profiles, activeProfileId: p.id, content: p.content, sector: p.sector, language: p.language, logo: p.logo, theme: p.theme };
         }),
 
       switchProfile: (id) =>
         set((s) => {
           if (id === s.activeProfileId) return {};
           const profiles = saveWorkingCopy(s);
-          const target = profiles.find((p) => p.id === id);
+          const target = profiles.find(p => p.id === id);
           if (!target) return {};
-          return {
-            profiles,
-            activeProfileId: id,
-            content: target.content,
-            sector: target.sector,
-            language: target.language,
-            logo: target.logo,
-            theme: target.theme,
-          };
+          return { profiles, activeProfileId: id, content: target.content, sector: target.sector, language: target.language, logo: target.logo, theme: target.theme };
         }),
 
       deleteProfile: (id) =>
         set((s) => {
           if (s.profiles.length <= 1) return {};
-          const profiles = saveWorkingCopy(s).filter((p) => p.id !== id);
+          const profiles = saveWorkingCopy(s).filter(p => p.id !== id);
           if (s.activeProfileId !== id) return { profiles };
           const next = profiles[0];
-          return {
-            profiles,
-            activeProfileId: next.id,
-            content: next.content,
-            sector: next.sector,
-            language: next.language,
-            logo: next.logo,
-            theme: next.theme,
-          };
+          return { profiles, activeProfileId: next.id, content: next.content, sector: next.sector, language: next.language, logo: next.logo, theme: next.theme };
         }),
 
       duplicateProfile: (id) =>
         set((s) => {
           const profiles = saveWorkingCopy(s);
-          const src = profiles.find((p) => p.id === id);
+          const src = profiles.find(p => p.id === id);
           if (!src) return {};
-          const copy: InvestorProfile = {
-            ...structuredClone(src),
-            id: makeId(),
-            name: `${src.name} (copia)`,
-            createdAt: new Date().toISOString(),
-          };
-          return {
-            profiles: [...profiles, copy],
-            activeProfileId: copy.id,
-            content: copy.content,
-            sector: copy.sector,
-            language: copy.language,
-            logo: copy.logo,
-            theme: copy.theme,
-          };
+          const copy: InvestorProfile = { ...structuredClone(src), id: makeId(), name: `${src.name} (copia)`, createdAt: new Date().toISOString() };
+          return { profiles: [...profiles, copy], activeProfileId: copy.id, content: copy.content, sector: copy.sector, language: copy.language, logo: copy.logo, theme: copy.theme };
         }),
 
       updateProfileMeta: (name, company) =>
-        set((s) => ({
-          profiles: s.profiles.map((p) =>
-            p.id === s.activeProfileId ? { ...p, name, company } : p
-          ),
-        })),
+        set((s) => ({ profiles: s.profiles.map(p => p.id === s.activeProfileId ? { ...p, name, company } : p) })),
+
+      addSentEntry: (entry) =>
+        set((s) => ({ sentLog: [{ ...entry, id: makeId() }, ...s.sentLog] })),
+
+      deleteSentEntry: (id) =>
+        set((s) => ({ sentLog: s.sentLog.filter(e => e.id !== id) })),
     }),
     {
       name: "distrito-energetico-v3",
@@ -220,6 +187,7 @@ export const useApp = create<AppState>()(
         language: s.language,
         logo: s.logo,
         theme: s.theme,
+        sentLog: s.sentLog,
       }),
     }
   )

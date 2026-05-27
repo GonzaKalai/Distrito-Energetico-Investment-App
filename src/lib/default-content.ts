@@ -1,6 +1,6 @@
 import type { ContentTree, Sector, Language, SectorContent } from "./types";
 
-const SECTORS: Sector[] = ["Industrial", "Hospitality", "Residential", "Logistics Cluster"];
+const SECTORS: Sector[] = ["Industrial", "Hospitality", "Residential", "Logistics Cluster", "Comercial / Retail", "Hotel", "Truck Center"];
 const LANGUAGES: Language[] = ["ES", "EN"];
 
 const buildSectorLang = (lang: Language, sector: Sector): SectorContent => {
@@ -22,6 +22,21 @@ const buildSectorLang = (lang: Language, sector: Sector): SectorContent => {
       return isES
         ? "Foco en vivienda dolarizada para mandos medios y profesionales relocados a Vaca Muerta, con un déficit estructural superior a 8.000 unidades en Añelo + Loma Campana."
         : "Focus on dollarized housing for mid-management and professionals relocating to Vaca Muerta, with a structural deficit of over 8,000 units across Añelo + Loma Campana.";
+    }
+    if (sector === "Comercial / Retail") {
+      return isES
+        ? "Foco en locales comerciales y retail para grandes marcas, empresas de servicios petroleros y formatos de conveniencia que atienden a la fuerza laboral de O&G."
+        : "Focus on commercial retail spaces for major brands, oil services companies and convenience formats serving the O&G workforce.";
+    }
+    if (sector === "Hotel") {
+      return isES
+        ? "Foco en hotel 3-4 estrellas para ejecutivos y crews de O&G que requieren alojamiento nocturno cerca de las operaciones de perforación."
+        : "Focus on 3-4 star hotel development for O&G executives and crews requiring nightly accommodation near drilling operations.";
+    }
+    if (sector === "Truck Center") {
+      return isES
+        ? "Foco en centros de servicios para camiones (combustible, mantenimiento, descanso, logística) que atenderán el tráfico pesado del nuevo bypass Ruta 7-17 que atraviesa el proyecto."
+        : "Focus on truck service centers (fuel, maintenance, rest areas, logistics) serving the heavy vehicle traffic through the new Route 7-17 bypass directly through the project.";
     }
     return isES
       ? "Foco en el cluster logístico multimodal: convergencia de rutas, ferrocarril, aeropuerto de carga y warehousing Clase A en un único nodo regional."
@@ -47,6 +62,13 @@ const buildSectorLang = (lang: Language, sector: Sector): SectorContent => {
           : "The core thesis rests on three pillars:\n\n1. Infrastructure Bottleneck — Logistics capacity is saturated. The Norpatagónico Train and Cargo Airport will create a multimodal convergence node that does not exist anywhere else in the basin.\n\n2. Class A Asset Scarcity — There is almost no Class A industrial, hospitality or premium residential supply. Operators currently rely on inefficient facilities 60-120 km from the drilling pad, with 30-40% logistics cost overruns.\n\n3. Regulatory Tailwinds — Strategic alignment with the national USD 25B/year hydrocarbon export goal, active RIGI regime and federal incentives for industrial construction.",
       },
     },
+
+    // Sector-specific financial reference numbers
+    const entryTicket = sector === "Comercial / Retail" ? "USD 300K" : sector === "Hotel" ? "USD 800K" : sector === "Truck Center" ? "USD 400K" : "USD 500K";
+    const irrRental = sector === "Comercial / Retail" ? "14.0%" : sector === "Hotel" ? "16.0%" : sector === "Truck Center" ? "18.0%" : "15.0%";
+    const irrSale = sector === "Comercial / Retail" ? "18.0%" : sector === "Hotel" ? "22.0%" : sector === "Truck Center" ? "24.0%" : "18.5%";
+    const roiRental = sector === "Comercial / Retail" ? "2.1x" : sector === "Hotel" ? "2.5x" : sector === "Truck Center" ? "2.8x" : "2.4x";
+    const roiSale = sector === "Comercial / Retail" ? "2.6x" : sector === "Hotel" ? "3.2x" : sector === "Truck Center" ? "3.5x" : "2.9x";
 
     tab2: {
       title: isES ? "Visión General" : "Overview",
@@ -116,8 +138,8 @@ const buildSectorLang = (lang: Language, sector: Sector): SectorContent => {
       dashboard: {
         title: isES ? "Estrategia de Salida de Inversión" : "Investment Exit Strategy",
         isVisible: true,
-        entryTicket: "USD 500K",
-        irrRental: "15.0%",
+        entryTicket: entryTicket,
+        irrRental: irrRental,
         roiRental: "32%",
         irrSale: "20.3%",
         roiSale: "51%",

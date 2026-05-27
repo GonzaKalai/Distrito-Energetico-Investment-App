@@ -1,4 +1,6 @@
 import { FileText, Zap, TrendingUp, Map, Truck, Shield, Calculator, Building, FileBox, Info, Train, Plane, Warehouse, Check, X } from "lucide-react";
+import { FinancialCalculator } from "./FinancialCalculator";
+import { CoverPage } from "./CoverPage";
 import { useState } from "react";
 import { useApp } from "@/state/store";
 import { EditableText } from "./editor/EditableText";
@@ -16,7 +18,7 @@ export function Tab1() {
   const { content, sector, language, updateTab } = useApp();
   const t = content[sector][language].tab1;
   return (
-    <div className="space-y-6">
+    <div data-print-section className="space-y-6">
       <SectionWrap isVisible={t.execSummary.isVisible} onToggle={() => updateTab("tab1", "execSummary.isVisible", !t.execSummary.isVisible)} label="Exec Summary">
         <Card>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><FileText className="text-primary" /><EditableText value={t.execSummary.title} onSave={(v) => updateTab("tab1", "execSummary.title", v)} /></h2>
@@ -42,7 +44,7 @@ export function Tab2() {
   const [selected, setSelected] = useState("turnkey");
 
   return (
-    <div className="space-y-6">
+    <div data-print-section className="space-y-6">
       <SectionWrap isVisible={t.packages.isVisible} onToggle={() => updateTab("tab2", "packages.isVisible", !t.packages.isVisible)} label="Packages">
         <Card>
           <h2 className="text-2xl font-bold mb-6"><EditableText value={t.packages.title} onSave={(v) => updateTab("tab2", "packages.title", v)} /></h2>

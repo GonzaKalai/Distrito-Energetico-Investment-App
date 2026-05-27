@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Toolbar } from "@/components/Toolbar";
 import { TabNav } from "@/components/TabNav";
 import { TAB_COMPONENTS } from "@/components/tabs";
+import { CoverPage } from "@/components/CoverPage";
 import { useApp } from "@/state/store";
 import { TAB_KEYS } from "@/lib/default-content";
 
@@ -39,6 +40,7 @@ function Index() {
           </div>
         </header>
 
+        <CoverPage />
         <TabNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <div className="animate-in fade-in duration-300">
@@ -47,6 +49,9 @@ function Index() {
 
         {/* Hidden render of all visible tabs for PDF export. */}
         <div id="print-root" className="absolute -left-[9999px] top-0 w-[1100px] bg-background">
+          <div data-print-section className="p-8 bg-foreground text-background">
+            <CoverPage />
+          </div>
           {TAB_KEYS.map((k) => {
             const tab = content[sector][language][k];
             if (!tab.isVisible) return null;

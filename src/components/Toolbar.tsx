@@ -10,6 +10,7 @@ import { exportPDF } from "@/lib/exports/pdf";
 import { exportPPTX } from "@/lib/exports/pptx";
 import { exportJSON, importJSON } from "@/lib/exports/json";
 import type { Sector, Language } from "@/lib/types";
+import { SendLogButton } from "./SendLog";
 
 const THEMES = ["Monochrome", "Industrial", "Impact"] as const;
 
@@ -266,6 +267,7 @@ export function Toolbar() {
 
         <div className="flex-1" />
 
+        <SendLogButton />
         <button onClick={onPPTX} disabled={busy === "pptx"} className="bg-background/10 hover:bg-background/20 px-3 py-1.5 rounded-lg flex items-center gap-2 font-medium">
           {busy === "pptx" ? <RefreshCw size={14} className="animate-spin" /> : <Presentation size={14} />} PPTX
         </button>

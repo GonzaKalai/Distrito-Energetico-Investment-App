@@ -1,4 +1,4 @@
-export type Sector = "Industrial" | "Hospitality" | "Residential" | "Logistics Cluster";
+export type Sector = "Industrial" | "Hospitality" | "Residential" | "Logistics Cluster" | "Comercial / Retail" | "Hotel" | "Truck Center";
 export type Language = "ES" | "EN";
 export type Theme = "Monochrome" | "Industrial" | "Impact";
 
@@ -32,5 +32,14 @@ export interface InvestorProfile {
   content: ContentTree;
 }
 
-export type SectorContent = Record<string, TabData>; // tab1..tab10
-export type ContentTree = Record<Sector, Record<Language, SectorContent>>;
+export interface SentEntry {
+  id: string;
+  profileId: string;
+  investorName: string;
+  company: string;
+  sector: Sector;
+  language: Language;
+  irrAtSend: string;
+  sentAt: string;
+  notes: string;
+}
