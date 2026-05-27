@@ -1,5 +1,6 @@
 export type Sector = "Industrial" | "Hospitality" | "Residential" | "Logistics Cluster";
 export type Language = "ES" | "EN";
+export type Theme = "Monochrome" | "Industrial" | "Impact";
 
 export type CustomBlock =
   | { id: string; type: "heading"; visible: boolean; text: string }
@@ -12,10 +13,23 @@ export type CustomBlock =
 export interface TabData {
   title: string;
   isVisible: boolean;
-  // Each tab has free-form content shape; we extend via index signature.
-  // The shape mirrors the Gemini prototype.
   [k: string]: any;
   customBlocks?: CustomBlock[];
+}
+
+export type SectorContent = Record<string, TabData>;
+export type ContentTree = Record<Sector, Record<Language, SectorContent>>;
+
+export interface InvestorProfile {
+  id: string;
+  name: string;
+  company: string;
+  createdAt: string;
+  sector: Sector;
+  language: Language;
+  logo: string | null;
+  theme: Theme;
+  content: ContentTree;
 }
 
 export type SectorContent = Record<string, TabData>; // tab1..tab10
