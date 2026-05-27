@@ -1,63 +1,93 @@
 import type { Sector, Language } from "../types";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface Args { sector: Sector; language: Language; logo: string | null }
 
-const twoFrames = () => new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
 const wait = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
+const twoFrames = () => new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
 
-export async function exportPDF({ sector, language, logo }: Args) {
+export async function exportPDF({ sector, language }: Args) {
   const printRoot = document.getElementById("print-root");
   if (!printRoot) { alert("Nothing to export."); return; }
 
   const { useApp } = await import("../../state/store");
   const prevEditing = useApp.getState().isEditingMode;
+
   if (prevEditing) {
     useApp.setState({ isEditingMode: false });
     await twoFrames();
   }
-  await wait(300);
 
-  // Collect all CSS from the page
-  const styles = Array.from(document.styleSheets).map(sheet => {
-    try { return Array.from(sheet.cssRules).map(r => r.cssText).join("\n"); }
-    catch { return ""; }
-  }).join("\n");
+  // Move print-root into view temporarily so html2canvas can render it
+  const prevStyle = printRoot.getAttribute("style") || "";
+  printRoot.style.cssText = "position: absolute; left: 0; top: 0; width: 1100px; z-index: -1; visibility: hidden;";
+  await wait(500);
 
-  const content = printRoot.innerHTML;
+  try {
+    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4", compress: true });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
 
-  const printWindow = window.open("", "_blank", "width=1000,height=800");
-  if (!printWindow) {
-    alert("Please allow popups for this site, then try again.");
+    const sections = printRoot.querySelectorAll("[data-print-section]");
+
+    if (sections.length === 0) {
+      // Fallback: capture entire print-root as one long PDF
+      const canvas = await html2canvas(printRoot, {
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const ratio = canvas.width / canvas.height;
+      const imgHeight = pageWidth / ratio;
+      let y = 0;
+      let remaining = imgHeight;
+      while (remaining > 0) {
+        pdf.addImage(imgData, "JPEG", 0, -y, pageWidth, imgHeight);
+        remaining -= pageHeight;
+        y += pageHeight;
+        if (remaining > 0) pdf.addPage();
+      }
+    } else {
+      // Capture section by section for clean page breaks
+      let first = true;
+      for (const section of Array.from(sections)) {
+        const canvas = await html2canvas(section as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+        });
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+        if (!first) pdf.addPage();
+        first = false;
+
+        // If section is taller than one page, paginate it
+        if (imgHeight <= pageHeight) {
+          pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
+        } else {
+          let y = 0;
+          let remaining = imgHeight;
+          while (remaining > 0) {
+            pdf.addImage(imgData, "JPEG", 0, -y, pageWidth, imgHeight);
+            remaining -= pageHeight;
+            y += pageHeight;
+            if (remaining > 0) pdf.addPage();
+          }
+        }
+      }
+    }
+
+    pdf.save(`DistritoEnergetico_${sector}_${language}.pdf`);
+  } finally {
+    // Restore print-root to its hidden position
+    printRoot.setAttribute("style", prevStyle);
     if (prevEditing) useApp.setState({ isEditingMode: true });
-    return;
   }
-
-  printWindow.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>DistritoEnergetico_${sector}_${language}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    ${styles}
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { margin: 0; padding: 0; background: white; font-family: 'Manrope', sans-serif; }
-    [data-print-section] { page-break-after: always; break-after: page; padding: 48px; }
-  </style>
-</head>
-<body>${content}</body>
-</html>`);
-
-  printWindow.document.close();
-
-  // Wait for fonts and styles to load, then print
-  await wait(2000);
-  printWindow.print();
-
-  // Cleanup after print dialog
-  setTimeout(() => {
-    printWindow.close();
-    if (prevEditing) useApp.setState({ isEditingMode: true });
-  }, 1000);
 }
