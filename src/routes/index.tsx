@@ -9,12 +9,6 @@ import { TAB_KEYS } from "@/lib/default-content";
 
 export const Route = createFileRoute("/")({
   component: Index,
-  head: () => ({
-    meta: [
-      { title: "Distrito Energético — Investment Memo Builder" },
-      { name: "description", content: "Editable bilingual investment memorandum for Vaca Muerta infrastructure." },
-    ],
-  }),
 });
 
 function Index() {
